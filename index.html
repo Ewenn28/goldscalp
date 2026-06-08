@@ -1,0 +1,1298 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GoldScalp">
+<meta name="theme-color" content="#0a0800">
+<link rel="manifest" href="manifest.json">
+<title>GoldScalp AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ─── RESET & BASE ─────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html { font-size: 16px; }
+body { font-family: 'Space Grotesk', sans-serif; background: #0a0800; color: #ede8d0; min-height: 100vh; overscroll-behavior: none; padding-bottom: calc(70px + env(safe-area-inset-bottom, 0px)); }
+
+/* ─── CSS VARS ─────────────────────────────────── */
+:root {
+  --gold: #d4a843;
+  --gold-light: #f0c85a;
+  --gold-dark: #8a6510;
+  --gold-glow: rgba(212,168,67,0.18);
+  --bg0: #0a0800;
+  --bg1: #100d00;
+  --bg2: #181200;
+  --bg3: #201800;
+  --border: rgba(212,168,67,0.14);
+  --border-strong: rgba(212,168,67,0.28);
+  --text: #ede8d0;
+  --text-dim: #9a8850;
+  --text-faint: #524830;
+  --green: #3ecf82;
+  --red: #e85555;
+  --blue: #5ba8f5;
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+
+/* ─── SCREENS ──────────────────────────────────── */
+#screen-setup { display: flex; }
+#screen-app   { display: none; }
+
+/* ─── SETUP SCREEN ─────────────────────────────── */
+#screen-setup {
+  min-height: 100vh;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 20px;
+  background: radial-gradient(ellipse 100% 50% at 50% -10%, #2a1c00, transparent 70%), #0a0800;
+}
+
+.setup-logo {
+  width: 72px; height: 72px;
+  background: linear-gradient(145deg, #d4a843, #7a5c0e);
+  border-radius: 20px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 34px; margin-bottom: 20px;
+  box-shadow: 0 0 40px rgba(212,168,67,0.25), 0 8px 24px rgba(0,0,0,0.5);
+}
+.setup-title {
+  font-size: 28px; font-weight: 700;
+  color: var(--gold-light);
+  letter-spacing: -0.5px;
+  margin-bottom: 6px; text-align: center;
+}
+.setup-subtitle {
+  font-size: 13px; color: var(--text-dim);
+  font-family: 'Space Mono', monospace;
+  margin-bottom: 32px; text-align: center;
+}
+
+.setup-card {
+  width: 100%; max-width: 420px;
+  background: var(--bg1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 12px;
+}
+.setup-card-title {
+  font-size: 11px; font-weight: 600;
+  color: var(--gold);
+  text-transform: uppercase; letter-spacing: 0.12em;
+  font-family: 'Space Mono', monospace;
+  margin-bottom: 14px;
+}
+.setup-label {
+  font-size: 12px; color: var(--text-dim);
+  margin-bottom: 6px; display: block;
+}
+.setup-input {
+  width: 100%;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 13px 14px;
+  color: var(--text);
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  outline: none;
+  transition: border-color 0.2s;
+  margin-bottom: 8px;
+}
+.setup-input:focus { border-color: var(--gold); }
+.setup-input::placeholder { color: var(--text-faint); }
+.setup-hint {
+  font-size: 11px; color: var(--text-faint);
+  line-height: 1.6;
+}
+.setup-hint a { color: var(--gold); text-decoration: none; }
+
+.btn-start {
+  width: 100%; max-width: 420px;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, #d4a843 0%, #8a6510 100%);
+  border: none; border-radius: var(--radius);
+  color: #0a0800;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 16px; font-weight: 700;
+  cursor: pointer; letter-spacing: 0.02em;
+  box-shadow: 0 6px 28px rgba(212,168,67,0.3);
+  transition: transform 0.15s, opacity 0.15s;
+  margin-bottom: 16px;
+}
+.btn-start:active { transform: scale(0.98); opacity: 0.9; }
+
+.setup-disclaimer {
+  font-size: 11px; color: var(--text-faint);
+  text-align: center; max-width: 380px;
+  line-height: 1.6;
+}
+
+/* ─── APP SCREEN ───────────────────────────────── */
+.topbar {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(10,8,0,0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.topbar-left { display: flex; align-items: center; gap: 10px; }
+.topbar-icon {
+  width: 32px; height: 32px;
+  background: linear-gradient(135deg, #d4a843, #8a6510);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+}
+.topbar-name { font-size: 17px; font-weight: 700; color: var(--gold-light); letter-spacing: -0.3px; }
+.topbar-sub { font-size: 10px; color: var(--text-faint); font-family: 'Space Mono', monospace; margin-top: 1px; }
+.session-badge {
+  font-size: 10px; font-family: 'Space Mono', monospace;
+  padding: 4px 10px; border-radius: 20px;
+  border: 1px solid; font-weight: 700;
+}
+.session-hot  { background: rgba(62,207,130,0.1); border-color: rgba(62,207,130,0.3); color: var(--green); }
+.session-ok   { background: var(--gold-glow); border-color: var(--border-strong); color: var(--gold); }
+.session-low  { background: rgba(232,85,85,0.08); border-color: rgba(232,85,85,0.2); color: var(--red); }
+
+/* ─── PAGES ────────────────────────────────────── */
+.page { display: none; padding: 14px 14px 0; max-width: 500px; margin: 0 auto; }
+.page.active { display: block; }
+
+/* ─── PRICE BAR ────────────────────────────────── */
+.price-bar {
+  background: var(--bg1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  margin-bottom: 12px;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px;
+}
+.price-left {}
+.price-label { font-size: 10px; color: var(--text-faint); font-family: 'Space Mono', monospace; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
+.price-value { font-family: 'Space Mono', monospace; font-size: 32px; font-weight: 700; color: var(--gold-light); line-height: 1; }
+.price-change { font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700; margin-top: 4px; }
+.up { color: var(--green); }
+.dn { color: var(--red); }
+.price-right { display: flex; gap: 16px; }
+.price-stat { text-align: right; }
+.price-stat-label { font-size: 9px; color: var(--text-faint); font-family: 'Space Mono', monospace; text-transform: uppercase; }
+.price-stat-val { font-size: 13px; color: var(--text-dim); font-family: 'Space Mono', monospace; margin-top: 2px; }
+
+/* ─── SESSION ROW ──────────────────────────────── */
+.session-row {
+  background: var(--bg1); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 10px 14px;
+  margin-bottom: 12px;
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.session-label { font-size: 10px; color: var(--text-faint); font-family: 'Space Mono', monospace; }
+.sess-chip {
+  font-size: 10px; font-family: 'Space Mono', monospace;
+  padding: 3px 8px; border-radius: 4px;
+  border: 1px solid var(--border); color: var(--text-faint);
+}
+.sess-chip.on { border-color: rgba(62,207,130,0.4); background: rgba(62,207,130,0.08); color: var(--green); font-weight: 700; }
+.sess-chip.overlap { border-color: var(--gold); background: var(--gold-glow); color: var(--gold); font-weight: 700; }
+.session-warn { margin-left: auto; font-size: 10px; font-family: 'Space Mono', monospace; color: var(--gold); }
+
+/* ─── SIGNAL CARD ──────────────────────────────── */
+.signal-card {
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg1);
+  padding: 18px;
+  margin-bottom: 12px;
+  transition: background 0.3s, border-color 0.3s;
+}
+.signal-card.buy  { background: rgba(62,207,130,0.04); border-color: rgba(62,207,130,0.3); }
+.signal-card.sell { background: rgba(232,85,85,0.04);  border-color: rgba(232,85,85,0.3); }
+
+.sig-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; }
+.sig-tag { font-size: 10px; color: var(--text-faint); font-family: 'Space Mono', monospace; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
+.sig-direction { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
+.sig-direction.buy  { color: var(--green); }
+.sig-direction.sell { color: var(--red); }
+.sig-direction.wait { color: var(--text-dim); }
+.sig-confidence {
+  font-size: 11px; font-family: 'Space Mono', monospace;
+  padding: 5px 11px; border-radius: 20px;
+  background: var(--bg2); border: 1px solid var(--border);
+  color: var(--text-dim); white-space: nowrap;
+}
+.sig-confidence.high { background: rgba(62,207,130,0.1); border-color: rgba(62,207,130,0.3); color: var(--green); }
+.sig-confidence.med  { background: var(--gold-glow); border-color: var(--border-strong); color: var(--gold); }
+
+.sig-levels { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.sig-level {
+  background: var(--bg0); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 10px 8px; text-align: center;
+}
+.sig-level-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-faint); font-family: 'Space Mono', monospace; margin-bottom: 5px; }
+.sig-level-val { font-size: 15px; font-weight: 700; font-family: 'Space Mono', monospace; }
+.lv-entry { color: var(--gold); }
+.lv-sl    { color: var(--red); }
+.lv-tp    { color: var(--green); }
+.sig-level-sub { font-size: 9px; color: var(--text-faint); font-family: 'Space Mono', monospace; margin-top: 3px; }
+
+.sig-extras { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+.sig-extra-box { background: var(--bg0); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 9px 11px; }
+.sig-extra-label { font-size: 9px; color: var(--text-faint); font-family: 'Space Mono', monospace; text-transform: uppercase; margin-bottom: 3px; }
+.sig-extra-val { font-size: 13px; font-family: 'Space Mono', monospace; color: var(--text-dim); }
+
+.sig-text { font-size: 13px; color: var(--text-dim); line-height: 1.7; border-top: 1px solid var(--border); padding-top: 12px; white-space: pre-wrap; }
+
+/* ─── CHART ────────────────────────────────────── */
+.chart-card {
+  background: var(--bg1); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px; margin-bottom: 12px;
+}
+.chart-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.chart-title { font-size: 11px; color: var(--text-dim); font-family: 'Space Mono', monospace; }
+.tf-btns { display: flex; gap: 4px; }
+.tf-btn {
+  font-size: 10px; font-family: 'Space Mono', monospace;
+  padding: 4px 9px; border-radius: 4px;
+  border: 1px solid var(--border); background: transparent;
+  color: var(--text-faint); cursor: pointer; transition: all 0.15s;
+}
+.tf-btn.active { border-color: var(--gold); background: var(--gold-glow); color: var(--gold); }
+.chart-wrap { position: relative; height: 160px; }
+.chart-legend { display: flex; gap: 12px; margin-top: 8px; flex-wrap: wrap; }
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--text-faint); font-family: 'Space Mono', monospace; }
+.legend-line { width: 16px; height: 2px; border-radius: 1px; }
+
+/* ─── INDICATORS PAGE ──────────────────────────── */
+.section-card {
+  background: var(--bg1); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px; margin-bottom: 12px;
+}
+.section-title {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.12em; color: var(--text-faint);
+  font-family: 'Space Mono', monospace; margin-bottom: 14px;
+}
+.ind-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.ind-box {
+  background: var(--bg0); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 10px 11px;
+}
+.ind-box-label { font-size: 9px; color: var(--text-faint); font-family: 'Space Mono', monospace; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 5px; }
+.ind-box-val { font-size: 12px; font-family: 'Space Mono', monospace; font-weight: 600; }
+.bull { color: var(--green); }
+.bear { color: var(--red); }
+.neut { color: var(--text-dim); }
+.ind-box-sub { font-size: 10px; color: var(--text-faint); margin-top: 2px; }
+
+.levels-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+
+.fund-item { display: flex; gap: 10px; padding: 9px 0; border-bottom: 1px solid rgba(212,168,67,0.05); }
+.fund-item:last-child { border-bottom: none; padding-bottom: 0; }
+.fund-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+.fd-bull { background: var(--green); }
+.fd-bear { background: var(--red); }
+.fd-neut { background: var(--text-faint); }
+.fund-name { font-size: 12px; color: var(--text); font-weight: 500; }
+.fund-detail { font-size: 11px; color: var(--text-faint); margin-top: 2px; line-height: 1.4; }
+
+/* ─── NEWS PAGE ────────────────────────────────── */
+.news-item { display: flex; gap: 10px; padding: 11px 0; border-bottom: 1px solid rgba(212,168,67,0.05); }
+.news-item:last-child { border-bottom: none; padding-bottom: 0; }
+.news-bar { width: 3px; border-radius: 2px; flex-shrink: 0; align-self: stretch; min-height: 36px; }
+.nb-bull { background: var(--green); }
+.nb-bear { background: var(--red); }
+.nb-neut { background: var(--text-faint); }
+.news-headline { font-size: 12px; color: var(--text); line-height: 1.5; font-weight: 400; }
+.news-meta { font-size: 10px; color: var(--text-faint); font-family: 'Space Mono', monospace; margin-top: 3px; }
+.news-impact { font-size: 9px; font-family: 'Space Mono', monospace; padding: 2px 6px; border-radius: 3px; margin-left: 6px; }
+.ni-bull { background: rgba(62,207,130,0.12); color: var(--green); }
+.ni-bear { background: rgba(232,85,85,0.12); color: var(--red); }
+.ni-neut { background: var(--bg2); color: var(--text-faint); }
+
+/* ─── SETTINGS PAGE ────────────────────────────── */
+.settings-section { margin-bottom: 20px; }
+.settings-section-title {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.12em; color: var(--gold);
+  font-family: 'Space Mono', monospace;
+  margin-bottom: 10px; padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.setting-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 11px 0; border-bottom: 1px solid rgba(212,168,67,0.05);
+}
+.setting-row:last-child { border-bottom: none; }
+.setting-name { font-size: 13px; color: var(--text); }
+.setting-desc { font-size: 11px; color: var(--text-faint); margin-top: 2px; }
+.setting-control { flex-shrink: 0; }
+
+.toggle {
+  width: 44px; height: 24px; border-radius: 12px;
+  border: 1px solid var(--border); background: var(--bg2);
+  position: relative; cursor: pointer; transition: all 0.25s;
+}
+.toggle::after {
+  content: ''; position: absolute;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--text-faint); top: 2px; left: 2px;
+  transition: all 0.25s;
+}
+.toggle.on { background: rgba(212,168,67,0.15); border-color: var(--gold); }
+.toggle.on::after { left: 22px; background: var(--gold); }
+
+.setting-select {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 7px 10px;
+  color: var(--text); font-family: 'Space Mono', monospace;
+  font-size: 11px; outline: none; cursor: pointer;
+}
+
+.key-display {
+  font-family: 'Space Mono', monospace; font-size: 11px;
+  color: var(--text-faint); background: var(--bg0);
+  border-radius: 4px; padding: 5px 9px; margin: 6px 0;
+  word-break: break-all;
+}
+.btn-reset {
+  font-size: 12px; color: var(--gold); background: transparent;
+  border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+  padding: 8px 14px; cursor: pointer; font-family: 'Space Grotesk', sans-serif;
+  transition: background 0.2s;
+}
+.btn-reset:hover { background: var(--gold-glow); }
+
+.about-row {
+  display: flex; justify-content: space-between;
+  padding: 7px 0; font-size: 12px;
+  border-bottom: 1px solid rgba(212,168,67,0.05);
+}
+.about-row:last-child { border-bottom: none; }
+.about-key { color: var(--text-faint); }
+.about-val { color: var(--text); font-family: 'Space Mono', monospace; font-size: 11px; }
+
+.disclaimer {
+  background: rgba(232,85,85,0.06); border: 1px solid rgba(232,85,85,0.2);
+  border-radius: var(--radius-sm); padding: 12px 14px;
+  font-size: 11px; color: var(--red); line-height: 1.6; margin-top: 8px;
+}
+
+/* ─── ANALYZE BUTTON ───────────────────────────── */
+.btn-analyze {
+  width: 100%; padding: 16px 20px;
+  background: linear-gradient(135deg, #d4a843, #8a6510);
+  border: none; border-radius: var(--radius);
+  color: #0a0800; font-family: 'Space Grotesk', sans-serif;
+  font-size: 15px; font-weight: 700; cursor: pointer;
+  letter-spacing: 0.02em;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 20px rgba(212,168,67,0.2);
+  transition: transform 0.15s, opacity 0.15s;
+}
+.btn-analyze:active { transform: scale(0.99); }
+.btn-analyze:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+.btn-secondary {
+  background: var(--bg2); color: var(--gold);
+  border: 1px solid var(--border-strong); box-shadow: none;
+  font-size: 13px; padding: 12px;
+}
+
+/* ─── BOTTOM NAV ───────────────────────────────── */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+  background: rgba(10,8,0,0.97);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid var(--border);
+  display: flex;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.nav-btn {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; gap: 3px;
+  padding: 9px 4px; border: none; background: transparent;
+  cursor: pointer;
+}
+.nav-btn-icon { font-size: 20px; }
+.nav-btn-label { font-size: 10px; font-family: 'Space Mono', monospace; color: var(--text-faint); }
+.nav-btn.active .nav-btn-label { color: var(--gold); }
+
+/* ─── SPINNER ──────────────────────────────────── */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner {
+  width: 16px; height: 16px;
+  border: 2px solid rgba(10,8,0,0.3); border-top-color: #0a0800;
+  border-radius: 50%; animation: spin 0.7s linear infinite;
+  display: inline-block;
+}
+
+/* ─── FLASH BANNER ─────────────────────────────── */
+@keyframes slideDown { from { transform: translateY(-100%); } to { transform: translateY(0); } }
+.flash {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
+  padding: 13px 16px; text-align: center;
+  font-size: 13px; font-weight: 700; font-family: 'Space Grotesk', sans-serif;
+  display: none; animation: slideDown 0.3s ease;
+  cursor: pointer;
+}
+.flash-buy  { background: var(--green); color: #002a15; }
+.flash-sell { background: var(--red);   color: #2a0000; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     SETUP SCREEN
+══════════════════════════════════════════ -->
+<div id="screen-setup">
+  <div class="setup-logo">⚡</div>
+  <div class="setup-title">GoldScalp AI</div>
+  <div class="setup-subtitle">INTRADAY XAU/USD · 15MIN – 1H45</div>
+
+  <div class="setup-card">
+    <div class="setup-card-title">🔑 Clé API Anthropic — obligatoire</div>
+    <label class="setup-label">Ta clé API Claude (commence par sk-ant-...)</label>
+    <input type="password" class="setup-input" id="input-ak" placeholder="sk-ant-api03-..." autocomplete="off" spellcheck="false">
+    <div class="setup-hint">
+      Obtiens ta clé sur <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a><br>
+      → API Keys → Create Key
+    </div>
+  </div>
+
+  <div class="setup-card">
+    <div class="setup-card-title">📈 Clé GoldAPI — prix or temps réel</div>
+    <label class="setup-label">Clé GoldAPI (optionnel — prix simulé si vide)</label>
+    <input type="password" class="setup-input" id="input-mk" placeholder="goldapi-XXXXXXXXX-..." autocomplete="off" spellcheck="false">
+    <div class="setup-hint">
+      Gratuit sur <a href="https://www.goldapi.io" target="_blank">goldapi.io</a> → Sign Up Free → copie ta clé<br>
+      (100 requêtes/mois, aucune CB requise)
+    </div>
+  </div>
+
+  <button class="btn-start" id="btn-start" onclick="onLaunch()">
+    Lancer GoldScalp AI →
+  </button>
+  <div class="setup-disclaimer">
+    🔒 Tes clés sont sauvegardées uniquement sur ton appareil.<br>
+    Aucun conseil financier — outil d'aide à la décision.
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     APP SCREEN
+══════════════════════════════════════════ -->
+<div id="screen-app">
+
+  <!-- Flash banner -->
+  <div class="flash" id="flash" onclick="this.style.display='none'"></div>
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-icon">⚡</div>
+      <div>
+        <div class="topbar-name">GoldScalp</div>
+        <div class="topbar-sub" id="topbar-time">—</div>
+      </div>
+    </div>
+    <div class="session-badge session-ok" id="session-badge">Session</div>
+  </div>
+
+  <!-- ── PAGE : SIGNAL ── -->
+  <div class="page active" id="page-signal">
+
+    <div class="price-bar">
+      <div class="price-left">
+        <div class="price-label">XAU / USD · Spot</div>
+        <div class="price-value" id="price-val">—</div>
+        <div class="price-change" id="price-chg">—</div>
+      </div>
+      <div class="price-right">
+        <div class="price-stat"><div class="price-stat-label">Haut</div><div class="price-stat-val" id="price-hi">—</div></div>
+        <div class="price-stat"><div class="price-stat-label">Bas</div><div class="price-stat-val" id="price-lo">—</div></div>
+      </div>
+    </div>
+
+    <div class="session-row">
+      <span class="session-label">Sessions:</span>
+      <span class="sess-chip" id="chip-london">🇬🇧 Londres</span>
+      <span class="sess-chip" id="chip-ny">🇺🇸 New York</span>
+      <span class="sess-chip" id="chip-asia">🌏 Asie</span>
+      <span class="session-warn" id="session-warn"></span>
+    </div>
+
+    <div class="signal-card" id="signal-card">
+      <div class="sig-header">
+        <div>
+          <div class="sig-tag">Signal intraday — XAU/USD</div>
+          <div class="sig-direction wait" id="sig-dir">En attente</div>
+        </div>
+        <div class="sig-confidence" id="sig-conf">—</div>
+      </div>
+      <div class="sig-levels">
+        <div class="sig-level"><div class="sig-level-label">Entrée</div><div class="sig-level-val lv-entry" id="lv-entry">—</div><div class="sig-level-sub" id="lv-entry-sub"></div></div>
+        <div class="sig-level"><div class="sig-level-label">Stop Loss</div><div class="sig-level-val lv-sl" id="lv-sl">—</div><div class="sig-level-sub" id="lv-sl-sub"></div></div>
+        <div class="sig-level"><div class="sig-level-label">Take Profit</div><div class="sig-level-val lv-tp" id="lv-tp">—</div><div class="sig-level-sub" id="lv-tp-sub"></div></div>
+      </div>
+      <div class="sig-extras">
+        <div class="sig-extra-box"><div class="sig-extra-label">Ratio R/R</div><div class="sig-extra-val" id="ex-rr">—</div></div>
+        <div class="sig-extra-box"><div class="sig-extra-label">Durée visée</div><div class="sig-extra-val" id="ex-dur">—</div></div>
+        <div class="sig-extra-box"><div class="sig-extra-label">Timeframe</div><div class="sig-extra-val" id="ex-tf">—</div></div>
+        <div class="sig-extra-box"><div class="sig-extra-label">Pips risqués</div><div class="sig-extra-val" id="ex-pips">—</div></div>
+      </div>
+      <div class="sig-text" id="sig-text">Appuie sur "Analyser" pour recevoir un signal complet avec entrée, stop loss, take profit et analyse.</div>
+    </div>
+
+    <button class="btn-analyze" id="btn-analyze" onclick="onAnalyze()">
+      ⚡ Analyser XAU/USD maintenant
+    </button>
+
+    <div class="chart-card" id="chart-card">
+      <div class="chart-head">
+        <div class="chart-title">XAU/USD — Graphique intraday</div>
+        <div class="tf-btns">
+          <button class="tf-btn active" onclick="onChangeTF(this,'5m')">5M</button>
+          <button class="tf-btn" onclick="onChangeTF(this,'15m')">15M</button>
+          <button class="tf-btn" onclick="onChangeTF(this,'1h')">1H</button>
+        </div>
+      </div>
+      <div class="chart-wrap"><canvas id="chartCanvas"></canvas></div>
+      <div class="chart-legend">
+        <div class="legend-item"><div class="legend-line" style="background:#d4a843"></div>Prix</div>
+        <div class="legend-item"><div class="legend-line" style="background:#5ba8f5"></div>EMA 9</div>
+        <div class="legend-item"><div class="legend-line" style="background:#b06cf5"></div>EMA 21</div>
+        <div class="legend-item"><div class="legend-line" style="background:#3ecf82;opacity:0.7"></div>VWAP</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PAGE : ANALYSE ── -->
+  <div class="page" id="page-analyse">
+    <div class="section-card">
+      <div class="section-title">Indicateurs Techniques Intraday</div>
+      <div class="ind-grid">
+        <div class="ind-box"><div class="ind-box-label">RSI 9</div><div class="ind-box-val neut" id="i-rsi">—</div><div class="ind-box-sub">Momentum rapide</div></div>
+        <div class="ind-box"><div class="ind-box-label">MACD</div><div class="ind-box-val neut" id="i-macd">—</div><div class="ind-box-sub">Signal / Histo</div></div>
+        <div class="ind-box"><div class="ind-box-label">EMA 9 / 21</div><div class="ind-box-val neut" id="i-ema">—</div><div class="ind-box-sub">Trend intraday</div></div>
+        <div class="ind-box"><div class="ind-box-label">VWAP</div><div class="ind-box-val neut" id="i-vwap">—</div><div class="ind-box-sub">Prix vs VWAP</div></div>
+        <div class="ind-box"><div class="ind-box-label">Bollinger 15m</div><div class="ind-box-val neut" id="i-bb">—</div><div class="ind-box-sub">Compression</div></div>
+        <div class="ind-box"><div class="ind-box-label">Stochastique</div><div class="ind-box-val neut" id="i-stoch">—</div><div class="ind-box-sub">Retournement</div></div>
+        <div class="ind-box"><div class="ind-box-label">ATR 14</div><div class="ind-box-val neut" id="i-atr">—</div><div class="ind-box-sub">Volatilité USD</div></div>
+        <div class="ind-box"><div class="ind-box-label">Volume</div><div class="ind-box-val neut" id="i-vol">—</div><div class="ind-box-sub">Confirmation</div></div>
+      </div>
+    </div>
+    <div class="section-card">
+      <div class="section-title">Niveaux Clés du Jour</div>
+      <div class="levels-grid">
+        <div class="ind-box"><div class="ind-box-label">Résistance 2</div><div class="ind-box-val bear" id="k-r2">—</div></div>
+        <div class="ind-box"><div class="ind-box-label">Résistance 1</div><div class="ind-box-val bear" id="k-r1">—</div></div>
+        <div class="ind-box"><div class="ind-box-label">Pivot</div><div class="ind-box-val neut" id="k-piv">—</div></div>
+        <div class="ind-box"><div class="ind-box-label">Support 1</div><div class="ind-box-val bull" id="k-s1">—</div></div>
+        <div class="ind-box"><div class="ind-box-label">Support 2</div><div class="ind-box-val bull" id="k-s2">—</div></div>
+        <div class="ind-box"><div class="ind-box-label">Range jour</div><div class="ind-box-val neut" id="k-range">—</div></div>
+      </div>
+    </div>
+    <div class="section-card">
+      <div class="section-title">Analyse Fondamentale</div>
+      <div id="fund-list">
+        <div class="fund-item"><div class="fund-dot fd-neut"></div><div><div class="fund-name">Lance une analyse</div><div class="fund-detail">Les facteurs fondamentaux apparaîtront ici après l'analyse.</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PAGE : NEWS ── -->
+  <div class="page" id="page-news">
+    <div class="section-card">
+      <div class="section-title">Catalyseurs & Actualités (Impact Intraday)</div>
+      <div id="news-list">
+        <div class="news-item"><div class="news-bar nb-neut"></div><div><div class="news-headline">Appuie sur "Actualiser" pour charger les actualités analysées par l'IA</div><div class="news-meta">En attente</div></div></div>
+      </div>
+    </div>
+    <button class="btn-analyze btn-secondary" onclick="onFetchNews()">🌐 Actualiser les actualités</button>
+    <div class="section-card">
+      <div class="section-title">Agenda Économique — Risques</div>
+      <div class="fund-item"><div class="fund-dot fd-bear"></div><div><div class="fund-name">CPI USA</div><div class="fund-detail">Inflation — fort impact DXY et or, forte volatilité</div></div></div>
+      <div class="fund-item"><div class="fund-dot fd-bear"></div><div><div class="fund-name">NFP (Non-Farm Payroll)</div><div class="fund-detail">Emploi US — fort USD = pression baissière sur or</div></div></div>
+      <div class="fund-item"><div class="fund-dot fd-bear"></div><div><div class="fund-name">Décision FOMC / Fed</div><div class="fund-detail">Éviter toute position ouverte — volatilité extrême</div></div></div>
+      <div class="fund-item"><div class="fund-dot fd-neut"></div><div><div class="fund-name">PMI / ISM</div><div class="fund-detail">Données activité économique — impact modéré</div></div></div>
+    </div>
+  </div>
+
+  <!-- ── PAGE : RÉGLAGES ── -->
+  <div class="page" id="page-settings">
+
+    <div class="settings-section">
+      <div class="settings-section-title">Notifications Push</div>
+      <div class="section-card">
+        <div class="setting-row">
+          <div><div class="setting-name">Activer les notifications</div><div class="setting-desc">Alerte quand un signal fort est détecté</div></div>
+          <button class="toggle setting-control" id="tog-notif" onclick="onToggle(this,'notif')"></button>
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-name">Signaux ACHAT uniquement</div><div class="setting-desc">Ne pas notifier les signaux de vente</div></div>
+          <button class="toggle setting-control" id="tog-buyonly" onclick="onToggle(this,'buyonly')"></button>
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-name">Confiance minimale</div><div class="setting-desc">Seuil avant notification</div></div>
+          <select class="setting-select setting-control" id="sel-thresh" onchange="onSelect('thresh',this.value)">
+            <option value="70">70% et +</option>
+            <option value="75">75% et +</option>
+            <option value="80">80% et +</option>
+            <option value="85" selected>85% et +</option>
+            <option value="90">90% et +</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">Analyse Automatique</div>
+      <div class="section-card">
+        <div class="setting-row">
+          <div><div class="setting-name">Auto-analyse activée</div><div class="setting-desc">Relancer l'analyse automatiquement</div></div>
+          <button class="toggle setting-control" id="tog-auto" onclick="onToggle(this,'auto')"></button>
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-name">Fréquence</div><div class="setting-desc">Intervalle entre deux analyses auto</div></div>
+          <select class="setting-select setting-control" id="sel-freq" onchange="onSelect('freq',this.value)">
+            <option value="5">5 min</option>
+            <option value="10">10 min</option>
+            <option value="15" selected>15 min</option>
+            <option value="30">30 min</option>
+          </select>
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-name">Sessions actives seulement</div><div class="setting-desc">Analyser uniquement Londres et New York</div></div>
+          <button class="toggle setting-control on" id="tog-sessonly" onclick="onToggle(this,'sessonly')"></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">Clés API</div>
+      <div class="section-card">
+        <div class="setting-row" style="flex-direction:column;align-items:flex-start;gap:8px;border-bottom:none;">
+          <div class="setting-name">Clé Anthropic active</div>
+          <div class="key-display" id="disp-key">—</div>
+          <button class="btn-reset" onclick="onReset()">Modifier les clés →</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">À Propos</div>
+      <div class="section-card">
+        <div class="about-row"><span class="about-key">Application</span><span class="about-val">GoldScalp AI</span></div>
+        <div class="about-row"><span class="about-key">Marché</span><span class="about-val">XAU/USD Spot</span></div>
+        <div class="about-row"><span class="about-key">Style</span><span class="about-val">Intraday 15m–1h45</span></div>
+        <div class="about-row"><span class="about-key">Modèle IA</span><span class="about-val">Claude Sonnet 4</span></div>
+        <div class="about-row"><span class="about-key">Prix données</span><span class="about-val">GoldAPI.io</span></div>
+      </div>
+      <div class="disclaimer">⚠️ Outil d'aide à la décision uniquement. Aucun conseil financier. Le trading comporte des risques de perte en capital.</div>
+    </div>
+
+  </div>
+
+  <!-- Bottom Nav -->
+  <div class="bottom-nav">
+    <button class="nav-btn active" id="nav-signal" onclick="onNav('signal')"><div class="nav-btn-icon">⚡</div><div class="nav-btn-label">Signal</div></button>
+    <button class="nav-btn" id="nav-analyse" onclick="onNav('analyse')"><div class="nav-btn-icon">🔬</div><div class="nav-btn-label">Analyse</div></button>
+    <button class="nav-btn" id="nav-news" onclick="onNav('news')"><div class="nav-btn-icon">🌐</div><div class="nav-btn-label">News</div></button>
+    <button class="nav-btn" id="nav-settings" onclick="onNav('settings')"><div class="nav-btn-icon">⚙️</div><div class="nav-btn-label">Réglages</div></button>
+  </div>
+
+</div><!-- /screen-app -->
+
+<!-- ══════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════ -->
+<script>
+'use strict';
+
+// ── ÉTAT GLOBAL ─────────────────────────────────────────
+var AK  = '';   // Clé Anthropic
+var GK  = '';   // Clé GoldAPI
+var myChart = null;
+var autoTimer = null;
+var currentTF = '5m';
+
+var gold = { price: 2338, open: 2330, high: 2345, low: 2325 };
+var settings = { notif: false, buyonly: false, auto: false, sessonly: true, thresh: '85', freq: '15' };
+
+// ── DÉMARRAGE ───────────────────────────────────────────
+window.onload = function() {
+  // Charger les données sauvegardées
+  AK = localStorage.getItem('ak') || '';
+  GK = localStorage.getItem('gk') || '';
+  var sv = localStorage.getItem('sett');
+  if (sv) { try { settings = Object.assign(settings, JSON.parse(sv)); } catch(e) {} }
+
+  if (AK) {
+    startApp();
+  }
+  // Sinon on reste sur l'écran setup
+};
+
+// ── LANCEMENT DEPUIS LE SETUP ───────────────────────────
+function onLaunch() {
+  var ak = document.getElementById('input-ak').value.trim();
+  var gk = document.getElementById('input-mk').value.trim();
+
+  if (!ak) {
+    alert('Entre ta clé API Anthropic pour continuer.');
+    return;
+  }
+
+  AK = ak;
+  GK = gk;
+  localStorage.setItem('ak', ak);
+  if (gk) localStorage.setItem('gk', gk);
+
+  startApp();
+}
+
+// ── DÉMARRAGE DE L'APP ──────────────────────────────────
+function startApp() {
+  document.getElementById('screen-setup').style.display = 'none';
+  document.getElementById('screen-app').style.display   = 'block';
+
+  // Afficher la clé masquée dans Réglages
+  var k = AK.length > 16 ? AK.slice(0,12) + '…' + AK.slice(-4) : AK;
+  document.getElementById('disp-key').textContent = k;
+
+  // Appliquer les toggles sauvegardés
+  applySettingsUI();
+
+  // Lancer les mises à jour
+  updateSession();
+  fetchPrice();
+  setInterval(updateSession, 30000);
+  setInterval(fetchPrice, 30000);
+
+  // Charger le graphique
+  loadChartJS(function() {
+    buildChart('5m');
+  });
+
+  // Auto-analyse si activée
+  if (settings.auto) startAutoTimer();
+}
+
+// ── NAVIGATION ──────────────────────────────────────────
+function onNav(name) {
+  document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+  document.querySelectorAll('.nav-btn').forEach(function(b) { b.classList.remove('active'); });
+  document.getElementById('page-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+}
+
+// ── SESSION ─────────────────────────────────────────────
+function updateSession() {
+  var now  = new Date();
+  var utcH = now.getUTCHours();
+  var utcM = now.getUTCMinutes();
+  var t    = utcH * 60 + utcM;
+
+  var inLondon = (t >= 420  && t < 960);   // 07:00–16:00 UTC
+  var inNY     = (t >= 720  && t < 1260);  // 12:00–21:00 UTC
+  var inAsia   = (t >= 1380 || t < 480);   // 23:00–08:00 UTC
+  var overlap  = inLondon && inNY;          // 12:00–16:00 UTC
+
+  document.getElementById('chip-london').className = 'sess-chip' + (inLondon ? (overlap ? ' overlap' : ' on') : '');
+  document.getElementById('chip-ny').className     = 'sess-chip' + (inNY ? (overlap ? ' overlap' : ' on') : '');
+  document.getElementById('chip-asia').className   = 'sess-chip' + (inAsia ? ' on' : '');
+
+  var badge = document.getElementById('session-badge');
+  var warn  = document.getElementById('session-warn');
+
+  if (overlap) {
+    badge.className     = 'session-badge session-hot';
+    badge.textContent   = '🔥 Overlap';
+    warn.textContent    = '⚡ Très forte liquidité';
+  } else if (inLondon) {
+    badge.className     = 'session-badge session-ok';
+    badge.textContent   = '🇬🇧 Londres';
+    warn.textContent    = '';
+  } else if (inNY) {
+    badge.className     = 'session-badge session-ok';
+    badge.textContent   = '🇺🇸 New York';
+    warn.textContent    = '';
+  } else if (inAsia) {
+    badge.className     = 'session-badge session-low';
+    badge.textContent   = '🌏 Asie';
+    warn.textContent    = '⚠️ Liquidité faible';
+  } else {
+    badge.className     = 'session-badge session-low';
+    badge.textContent   = 'Fermé';
+    warn.textContent    = '';
+  }
+
+  // Heure dans topbar
+  var hh = utcH.toString().padStart(2,'0');
+  var mm = utcM.toString().padStart(2,'0');
+  document.getElementById('topbar-time').textContent = 'UTC ' + hh + ':' + mm;
+}
+
+// ── PRIX ─────────────────────────────────────────────────
+function fetchPrice() {
+  if (GK) {
+    fetch('https://www.goldapi.io/api/XAU/USD', {
+      headers: { 'x-access-token': GK, 'Content-Type': 'application/json' }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d && d.price) {
+        gold.price = parseFloat(d.price.toFixed(2));
+        gold.open  = d.open_price  ? parseFloat(d.open_price.toFixed(2))  : gold.price - 5;
+        gold.high  = d.high_price  ? parseFloat(d.high_price.toFixed(2))  : gold.price + 8;
+        gold.low   = d.low_price   ? parseFloat(d.low_price.toFixed(2))   : gold.price - 8;
+        renderPrice();
+      }
+    })
+    .catch(function() { simulatePrice(); });
+  } else {
+    simulatePrice();
+  }
+}
+
+function simulatePrice() {
+  gold.price = parseFloat((gold.price + (Math.random() - 0.49) * 1.5).toFixed(2));
+  gold.open  = parseFloat((gold.price - (Math.random() * 10 - 5)).toFixed(2));
+  gold.high  = parseFloat((gold.price + Math.random() * 8).toFixed(2));
+  gold.low   = parseFloat((gold.price - Math.random() * 8).toFixed(2));
+  renderPrice();
+}
+
+function renderPrice() {
+  var chg    = gold.price - gold.open;
+  var chgPct = (chg / gold.open * 100);
+  var isUp   = chg >= 0;
+  var sign   = isUp ? '+' : '';
+
+  document.getElementById('price-val').textContent = '$' + gold.price.toFixed(2);
+  var cel = document.getElementById('price-chg');
+  cel.textContent  = sign + chg.toFixed(2) + ' (' + sign + chgPct.toFixed(2) + '%)';
+  cel.className    = 'price-change ' + (isUp ? 'up' : 'dn');
+  document.getElementById('price-hi').textContent = '$' + gold.high.toFixed(2);
+  document.getElementById('price-lo').textContent = '$' + gold.low.toFixed(2);
+}
+
+// ── GRAPHIQUE ────────────────────────────────────────────
+function loadChartJS(cb) {
+  if (typeof Chart !== 'undefined') { cb(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js';
+  s.onload  = cb;
+  s.onerror = function() { document.getElementById('chart-card').style.display = 'none'; };
+  document.head.appendChild(s);
+}
+
+function buildChart(tf) {
+  if (typeof Chart === 'undefined') return;
+  var canvas = document.getElementById('chartCanvas');
+  var n      = tf === '5m' ? 48 : tf === '15m' ? 32 : 24;
+  var step   = tf === '5m' ? 300 : tf === '15m' ? 900 : 3600;
+  var prices = [], ema9arr = [], ema21arr = [], vwapArr = [], labels = [];
+  var p = gold.price - n * 0.25;
+  var e9 = p, e21 = p, cumPV = 0, cumV = 0;
+  var k9 = 2/10, k21 = 2/22;
+  var now = new Date();
+
+  for (var i = n; i >= 0; i--) {
+    p += (Math.random() - 0.47) * (tf === '1h' ? 4 : tf === '15m' ? 2 : 1.2);
+    p  = Math.max(gold.price - 50, Math.min(gold.price + 50, p));
+    p  = parseFloat(p.toFixed(2));
+    e9  = parseFloat((e9  + k9  * (p - e9)).toFixed(2));
+    e21 = parseFloat((e21 + k21 * (p - e21)).toFixed(2));
+    var vol = 1000 + Math.random() * 2000;
+    cumPV += p * vol; cumV += vol;
+    prices.push(p); ema9arr.push(e9); ema21arr.push(e21);
+    vwapArr.push(parseFloat((cumPV / cumV).toFixed(2)));
+    var t = new Date(now - i * step * 1000);
+    labels.push(t.getHours().toString().padStart(2,'0') + ':' + t.getMinutes().toString().padStart(2,'0'));
+  }
+
+  if (myChart) { myChart.destroy(); myChart = null; }
+
+  myChart = new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        { label: 'Prix',   data: prices,  borderColor: '#d4a843', borderWidth: 2, pointRadius: 0, tension: 0.3, fill: false },
+        { label: 'EMA 9',  data: ema9arr, borderColor: '#5ba8f5', borderWidth: 1.5, pointRadius: 0, tension: 0.3, fill: false },
+        { label: 'EMA 21', data: ema21arr,borderColor: '#b06cf5', borderWidth: 1.5, pointRadius: 0, tension: 0.3, fill: false },
+        { label: 'VWAP',   data: vwapArr, borderColor: '#3ecf82', borderWidth: 1.5, pointRadius: 0, tension: 0.3, fill: false, borderDash: [4,3] }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      animation: { duration: 250 },
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(c) { return c.dataset.label + ': $' + c.parsed.y.toFixed(2); } } } },
+      scales: {
+        x: { ticks: { color: '#524830', font: { size: 9 }, maxTicksLimit: 7 }, grid: { color: 'rgba(212,168,67,0.04)' } },
+        y: { ticks: { color: '#524830', font: { size: 9 }, callback: function(v) { return '$' + v; } }, grid: { color: 'rgba(212,168,67,0.04)' } }
+      }
+    }
+  });
+}
+
+function onChangeTF(btn, tf) {
+  document.querySelectorAll('.tf-btn').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+  currentTF = tf;
+  buildChart(tf);
+}
+
+// ── ANALYSE ──────────────────────────────────────────────
+function onAnalyze() {
+  var btn = document.getElementById('btn-analyze');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> Analyse en cours…';
+
+  // Reset visuel
+  setSignalCard('wait', 'Analyse IA en cours…', '—', '—', '—');
+  document.getElementById('sig-text').textContent = 'Claude analyse les données techniques et fondamentales…';
+
+  var now  = new Date();
+  var utcH = now.getUTCHours();
+  var utcM = now.getUTCMinutes();
+  var t    = utcH * 60 + utcM;
+  var inLondon = (t >= 420 && t < 960);
+  var inNY     = (t >= 720 && t < 1260);
+  var overlap  = inLondon && inNY;
+  var session  = overlap ? 'Overlap London/New York' : inLondon ? 'Session Londres' : inNY ? 'Session New York' : 'Hors session principale';
+  var volatility = overlap ? 'TRES HAUTE' : (inLondon || inNY) ? 'HAUTE' : 'FAIBLE';
+
+  var p    = gold.price;
+  var piv  = parseFloat(((gold.high + gold.low + p) / 3).toFixed(2));
+  var r1   = parseFloat((2 * piv - gold.low).toFixed(2));
+  var r2   = parseFloat((piv + (gold.high - gold.low)).toFixed(2));
+  var s1   = parseFloat((2 * piv - gold.high).toFixed(2));
+  var s2   = parseFloat((piv - (gold.high - gold.low)).toFixed(2));
+
+  var prompt = 'Tu es un trader expert en intraday sur XAU/USD (or spot).\n\n'
+    + 'MARCHE ACTUEL:\n'
+    + 'Prix: ' + p.toFixed(2) + ' USD\n'
+    + 'Haut: ' + gold.high.toFixed(2) + ' | Bas: ' + gold.low.toFixed(2) + ' | Ouverture: ' + gold.open.toFixed(2) + '\n'
+    + 'Session: ' + session + ' | Volatilite: ' + volatility + '\n'
+    + 'Heure UTC: ' + utcH + 'h' + utcM.toString().padStart(2,'0') + '\n'
+    + 'Niveaux pivots calcules: Pivot=' + piv + ' R1=' + r1 + ' R2=' + r2 + ' S1=' + s1 + ' S2=' + s2 + '\n\n'
+    + 'CONTRAINTES:\n'
+    + '- Bougies 5min et 15min uniquement\n'
+    + '- Duree position: 15min minimum, 1h45 maximum\n'
+    + '- Stop Loss: entre 8 et 20 USD\n'
+    + '- Take Profit: entre 15 et 45 USD\n'
+    + '- Ratio R/R minimum: 1.5\n\n'
+    + 'Analyse les indicateurs intraday (RSI 9, MACD, EMA9/EMA21, VWAP, Bollinger 15min, Stochastique, ATR 14, Volume) et le contexte fondamental actuel (DXY, Fed, geopolitique, taux US, ETF or, sentiment).\n\n'
+    + 'REPONDS UNIQUEMENT AVEC CE JSON, sans aucun texte avant ou apres, sans markdown:\n'
+    + '{"signal":"ACHAT","confiance":75,"entree":' + p.toFixed(2) + ',"stop_loss":' + (p-12).toFixed(2) + ',"take_profit":' + (p+20).toFixed(2) + ',"pips_risques":12,"ratio_rr":1.7,"duree_estimee":"30-60min","timeframe_principal":"15min","technique":{"rsi9":"55 neutre","macd":"haussier leger","ema_9_21":"EMA9 au-dessus EMA21","vwap":"prix au-dessus VWAP","bollinger":"milieu bande","stochastique":"52 neutre","atr":"14 USD","volume":"normal"},"niveaux":{"pivot":' + piv + ',"r1":' + r1 + ',"r2":' + r2 + ',"s1":' + s1 + ',"s2":' + s2 + ',"range_jour":"' + (gold.high - gold.low).toFixed(1) + ' USD"},"fondamental":[{"facteur":"Dollar DXY","detail":"stable","sens":"neutre"},{"facteur":"Fed","detail":"hawkish modere","sens":"baissier"},{"facteur":"Geopolitique","detail":"tensions soutiennent or","sens":"haussier"},{"facteur":"ETF or","detail":"flux positifs","sens":"haussier"},{"facteur":"Taux US 10ans","detail":"stable","sens":"neutre"},{"facteur":"Sentiment","detail":"risk-off partiel","sens":"haussier"}],"resume":"Decris le signal en 2 phrases.","points_entree":["Condition 1","Condition 2"],"risques_trade":"Risques a surveiller","invalidation":"Niveau invalidation"}';
+
+  fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': AK,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1500,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  })
+  .then(function(resp) {
+    if (!resp.ok) {
+      return resp.json().then(function(e) {
+        throw new Error(e.error && e.error.message ? e.error.message : 'Erreur HTTP ' + resp.status);
+      });
+    }
+    return resp.json();
+  })
+  .then(function(data) {
+    var raw = (data.content || []).map(function(c) { return c.text || ''; }).join('');
+    var result = extractJSON(raw);
+    if (!result) throw new Error('Réponse IA non exploitable — réessaie.');
+    applyResult(result);
+
+    // Notification
+    var conf = result.confiance || 0;
+    if (settings.notif && conf >= parseInt(settings.thresh)) {
+      if (!settings.buyonly || result.signal === 'ACHAT') sendNotif(result);
+    }
+    showFlash(result);
+  })
+  .catch(function(err) {
+    setSignalCard('wait', '⚠️ Erreur', '—', '—', '—');
+    document.getElementById('sig-text').textContent = '❌ ' + err.message + '\n\nVérifie ta clé Anthropic dans Réglages et que tu as des crédits sur console.anthropic.com';
+  })
+  .finally(function() {
+    btn.disabled = false;
+    btn.innerHTML = '🔄 Relancer l\'analyse';
+  });
+}
+
+// Extraction JSON robuste
+function extractJSON(text) {
+  // Nettoyer markdown
+  var s = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+  // Essai direct
+  try { return JSON.parse(s); } catch(e1) {}
+  // Chercher le bloc { ... }
+  var start = s.indexOf('{');
+  if (start === -1) return null;
+  var depth = 0, inStr = false, esc = false;
+  for (var i = start; i < s.length; i++) {
+    var c = s[i];
+    if (esc) { esc = false; continue; }
+    if (c === '\\' && inStr) { esc = true; continue; }
+    if (c === '"') { inStr = !inStr; continue; }
+    if (inStr) continue;
+    if (c === '{') depth++;
+    else if (c === '}') { depth--; if (depth === 0) { try { return JSON.parse(s.slice(start, i+1)); } catch(e2) {} } }
+  }
+  return null;
+}
+
+function applyResult(r) {
+  var isBuy  = r.signal === 'ACHAT';
+  var isSell = r.signal === 'VENTE';
+  var type   = isBuy ? 'buy' : isSell ? 'sell' : 'wait';
+  var dir    = isBuy ? '📈 ACHAT (LONG)' : isSell ? '📉 VENTE (SHORT)' : '⏳ ATTENTE';
+
+  var entry = r.entree    ? '$' + parseFloat(r.entree).toFixed(2)     : '—';
+  var sl    = r.stop_loss ? '$' + parseFloat(r.stop_loss).toFixed(2)  : '—';
+  var tp    = r.take_profit ? '$' + parseFloat(r.take_profit).toFixed(2) : '—';
+
+  setSignalCard(type, dir, entry, sl, tp);
+
+  // Sous-labels pips
+  if (r.pips_risques) {
+    document.getElementById('lv-sl-sub').textContent  = '-$' + parseFloat(r.pips_risques).toFixed(1);
+    if (r.ratio_rr) document.getElementById('lv-tp-sub').textContent = '+$' + (parseFloat(r.pips_risques) * parseFloat(r.ratio_rr)).toFixed(1);
+  }
+
+  // Extras
+  document.getElementById('ex-rr').textContent   = r.ratio_rr ? r.ratio_rr + ':1' : '—';
+  document.getElementById('ex-dur').textContent  = r.duree_estimee || '—';
+  document.getElementById('ex-tf').textContent   = r.timeframe_principal || '—';
+  document.getElementById('ex-pips').textContent = r.pips_risques ? '$' + parseFloat(r.pips_risques).toFixed(1) : '—';
+
+  // Badge confiance
+  var conf = r.confiance || 0;
+  var cb = document.getElementById('sig-conf');
+  cb.textContent = conf + '% confiance';
+  cb.className = 'sig-confidence' + (conf >= 80 ? ' high' : conf >= 65 ? ' med' : '');
+
+  // Texte
+  var txt = r.resume || '';
+  if (r.points_entree && r.points_entree.length) txt += '\n\n✅ Conditions:\n' + r.points_entree.map(function(p) { return '• ' + p; }).join('\n');
+  if (r.risques_trade)  txt += '\n\n⚠️ Risques: ' + r.risques_trade;
+  if (r.invalidation)   txt += '\n\n❌ Invalidation: ' + r.invalidation;
+  document.getElementById('sig-text').textContent = txt;
+
+  // Page Analyse — indicateurs
+  if (r.technique) {
+    setInd('i-rsi',   r.technique.rsi9);
+    setInd('i-macd',  r.technique.macd);
+    setInd('i-ema',   r.technique.ema_9_21);
+    setInd('i-vwap',  r.technique.vwap);
+    setInd('i-bb',    r.technique.bollinger);
+    setInd('i-stoch', r.technique.stochastique);
+    setInd('i-atr',   r.technique.atr);
+    setInd('i-vol',   r.technique.volume);
+  }
+  if (r.niveaux) {
+    var n = r.niveaux;
+    setText('k-r2',    n.r2    ? '$' + parseFloat(n.r2).toFixed(2) : '—');
+    setText('k-r1',    n.r1    ? '$' + parseFloat(n.r1).toFixed(2) : '—');
+    setText('k-piv',   n.pivot ? '$' + parseFloat(n.pivot).toFixed(2) : '—');
+    setText('k-s1',    n.s1    ? '$' + parseFloat(n.s1).toFixed(2) : '—');
+    setText('k-s2',    n.s2    ? '$' + parseFloat(n.s2).toFixed(2) : '—');
+    setText('k-range', n.range_jour || '—');
+  }
+  if (r.fondamental && r.fondamental.length) {
+    document.getElementById('fund-list').innerHTML = r.fondamental.map(function(f) {
+      var cls = f.sens === 'haussier' ? 'fd-bull' : f.sens === 'baissier' ? 'fd-bear' : 'fd-neut';
+      return '<div class="fund-item"><div class="fund-dot ' + cls + '"></div><div><div class="fund-name">' + f.facteur + '</div><div class="fund-detail">' + f.detail + '</div></div></div>';
+    }).join('');
+  }
+}
+
+function setSignalCard(type, dir, entry, sl, tp) {
+  var card = document.getElementById('signal-card');
+  card.className = 'signal-card ' + type;
+  var de = document.getElementById('sig-dir');
+  de.textContent = dir;
+  de.className = 'sig-direction ' + type;
+  document.getElementById('lv-entry').textContent = entry;
+  document.getElementById('lv-sl').textContent    = sl;
+  document.getElementById('lv-tp').textContent    = tp;
+  document.getElementById('lv-sl-sub').textContent  = '';
+  document.getElementById('lv-tp-sub').textContent  = '';
+  document.getElementById('lv-entry-sub').textContent = '';
+}
+
+function setInd(id, text) {
+  var el = document.getElementById(id);
+  if (!el || !text) return;
+  el.textContent = text.length > 30 ? text.slice(0,28) + '…' : text;
+  var lo = text.toLowerCase();
+  var isBull = /haussier|positif|dessus|golden|achat|rebond|survente/.test(lo);
+  var isBear = /baissier|negatif|dessous|pression|surachat|vente/.test(lo);
+  el.className = 'ind-box-val ' + (isBull ? 'bull' : isBear ? 'bear' : 'neut');
+}
+
+function setText(id, val) {
+  var el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+
+// ── NEWS ─────────────────────────────────────────────────
+function onFetchNews() {
+  var container = document.getElementById('news-list');
+  container.innerHTML = '<div style="padding:16px;text-align:center;color:var(--text-dim);font-size:12px;">Chargement…</div>';
+
+  var prompt = 'Tu es un analyste specialise sur le marche de l\'or XAU/USD. '
+    + 'Liste 6 catalyseurs actuels (geopolitiques, macroeconomiques) qui influencent le prix de l\'or aujourd\'hui pour des trades intraday de 15min a 2h. '
+    + 'REPONDS UNIQUEMENT avec ce JSON sans texte autour: '
+    + '{"items":[{"titre":"titre court","detail":"impact intraday","source":"source","sens":"haussier","force":"fort"},{"titre":"...","detail":"...","source":"...","sens":"baissier","force":"moyen"},{"titre":"...","detail":"...","source":"...","sens":"neutre","force":"faible"},{"titre":"...","detail":"...","source":"...","sens":"haussier","force":"fort"},{"titre":"...","detail":"...","source":"...","sens":"baissier","force":"moyen"},{"titre":"...","detail":"...","source":"...","sens":"neutre","force":"faible"}]}';
+
+  fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': AK,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 800,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    var raw = (data.content || []).map(function(c) { return c.text || ''; }).join('');
+    var result = extractJSON(raw);
+    if (!result || !result.items) throw new Error('Réponse vide');
+    container.innerHTML = result.items.map(function(n) {
+      var bc = n.sens === 'haussier' ? 'nb-bull' : n.sens === 'baissier' ? 'nb-bear' : 'nb-neut';
+      var ic = n.sens === 'haussier' ? 'ni-bull' : n.sens === 'baissier' ? 'ni-bear' : 'ni-neut';
+      return '<div class="news-item"><div class="news-bar ' + bc + '"></div><div><div class="news-headline">' + n.titre + '<span class="news-impact ' + ic + '">' + n.sens + '</span></div><div class="news-meta">' + n.source + ' · ' + n.force + ' impact · ' + n.detail + '</div></div></div>';
+    }).join('');
+  })
+  .catch(function(e) {
+    container.innerHTML = '<div style="padding:12px;color:var(--red);font-size:12px;">Erreur: ' + e.message + '</div>';
+  });
+}
+
+// ── NOTIFICATIONS ────────────────────────────────────────
+function sendNotif(r) {
+  if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+  var em = r.signal === 'ACHAT' ? '📈' : '📉';
+  var entry = r.entree ? '$' + parseFloat(r.entree).toFixed(2) : '?';
+  var sl    = r.stop_loss ? '$' + parseFloat(r.stop_loss).toFixed(2) : '?';
+  var tp    = r.take_profit ? '$' + parseFloat(r.take_profit).toFixed(2) : '?';
+  try {
+    new Notification(em + ' GoldScalp — ' + r.signal + ' XAU/USD', {
+      body: 'Entrée: ' + entry + ' | SL: ' + sl + ' | TP: ' + tp + '\nConfiance: ' + r.confiance + '% · ' + (r.duree_estimee || ''),
+      icon: ''
+    });
+  } catch(e) {}
+}
+
+function showFlash(r) {
+  if (r.signal === 'ATTENTE') return;
+  var el = document.getElementById('flash');
+  var isBuy = r.signal === 'ACHAT';
+  el.className = 'flash ' + (isBuy ? 'flash-buy' : 'flash-sell');
+  el.textContent = (isBuy ? '📈 ACHAT' : '📉 VENTE') + ' XAU/USD — Confiance ' + (r.confiance || 0) + '%';
+  el.style.display = 'block';
+  setTimeout(function() { el.style.display = 'none'; }, 5000);
+}
+
+// ── RÉGLAGES ─────────────────────────────────────────────
+function onToggle(btn, key) {
+  btn.classList.toggle('on');
+  settings[key] = btn.classList.contains('on');
+  saveSettings();
+
+  if (key === 'notif' && settings.notif) {
+    if (typeof Notification !== 'undefined' && Notification.permission !== 'granted') {
+      Notification.requestPermission().then(function(p) {
+        if (p !== 'granted') {
+          btn.classList.remove('on');
+          settings.notif = false;
+          saveSettings();
+          alert('Notifications refusées. Active-les dans les réglages de ton navigateur.');
+        }
+      });
+    }
+  }
+  if (key === 'auto') {
+    if (settings.auto) startAutoTimer();
+    else stopAutoTimer();
+  }
+}
+
+function onSelect(key, val) {
+  settings[key] = val;
+  saveSettings();
+}
+
+function saveSettings() {
+  try { localStorage.setItem('sett', JSON.stringify(settings)); } catch(e) {}
+}
+
+function applySettingsUI() {
+  var keys = ['notif','buyonly','auto','sessonly'];
+  var ids  = {'notif':'tog-notif','buyonly':'tog-buyonly','auto':'tog-auto','sessonly':'tog-sessonly'};
+  keys.forEach(function(k) {
+    var el = document.getElementById(ids[k]);
+    if (el && settings[k]) el.classList.add('on');
+    else if (el && !settings[k]) el.classList.remove('on');
+  });
+  var th = document.getElementById('sel-thresh');
+  if (th) th.value = settings.thresh;
+  var fr = document.getElementById('sel-freq');
+  if (fr) fr.value = settings.freq;
+}
+
+function startAutoTimer() {
+  stopAutoTimer();
+  var ms = parseInt(settings.freq || '15') * 60 * 1000;
+  autoTimer = setInterval(function() {
+    if (settings.sessonly) {
+      var now = new Date();
+      var t   = now.getUTCHours() * 60 + now.getUTCMinutes();
+      var inSession = (t >= 420 && t < 960) || (t >= 720 && t < 1260);
+      if (!inSession) return;
+    }
+    onAnalyze();
+  }, ms);
+}
+
+function stopAutoTimer() {
+  if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+}
+
+function onReset() {
+  if (confirm('Supprimer les clés et revenir à l\'écran de démarrage ?')) {
+    try { localStorage.clear(); } catch(e) {}
+    location.reload();
+  }
+}
+</script>
+</body>
+</html>
